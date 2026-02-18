@@ -1,0 +1,1259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OpenSesame — a little story about me</title>
+<style>
+/* ═══════════════════════════════════════════
+   DESIGN TOKENS — edit colors here
+═══════════════════════════════════════════ */
+:root {
+  --orange:        #F26522;
+  --orange-light:  #FFF0E8;
+  --orange-mid:    #FFD9BC;
+  --orange-deep:   #C84B0A;
+
+  /* Second flower / mug: coral-red */
+  --coral:         #E8432A;
+  --coral-light:   #FFE8E4;
+  --coral-mid:     #F4A090;
+  --coral-deep:    #B02A14;
+
+  --yellow:        #FFD43B;
+  --yellow-deep:   #F5A623;
+
+  --soil:          #7B4F2E;
+  --soil-light:    #A0673A;
+  --green:         #4A9B5F;
+  --green-dark:    #2E7044;
+  --stem:          #5CAF72;
+
+  --text:          #1A1008;
+  --text-muted:    #6B4226;
+  --bg:            #FDFAF7;
+  --card-bg:       #FFFBF7;
+  --border:        rgba(242,101,34,0.18);
+  --border-subtle: rgba(242,101,34,0.10);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Lora', Georgia, serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image:
+    radial-gradient(circle at 15% 15%, rgba(242,101,34,0.04) 0%, transparent 55%),
+    radial-gradient(circle at 85% 85%, rgba(242,101,34,0.04) 0%, transparent 55%);
+  pointer-events: none; z-index: 0;
+}
+
+.wrapper {
+  position: relative; z-index: 1;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+/* ── HEADER ─────────────────────────────── */
+header {
+  padding: 2.5rem 0 2rem;
+  display: flex; align-items: baseline; gap: 0.75rem; flex-wrap: wrap;
+}
+.logo-badge {
+  font-family: 'DM Mono', 'Courier New', monospace;
+  font-size: 0.7rem; font-weight: 500;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  background: var(--orange); color: white;
+  padding: 0.3em 0.7em; border-radius: 3px;
+}
+.header-title {
+  font-size: clamp(1.05rem, 3vw, 1.3rem);
+  font-weight: 400; color: var(--text-muted); font-style: italic;
+}
+.header-title em { color: var(--orange); font-style: normal; font-weight: 600; }
+
+/* ── SECTION LABEL ──────────────────────── */
+.section-label {
+  font-family: 'DM Mono', 'Courier New', monospace;
+  font-size: 0.62rem; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--orange); margin-bottom: 0.8rem;
+}
+
+/* ══════════════════════════════════════════
+   TWO-COLUMN SEQUENCE LAYOUT
+   ─────────────────────────────────────────
+   Left col = sticky plant area.
+   Right col = scrollable story text.
+   The sticky offset (top: value) keeps the
+   plant anchored near the top of the viewport
+   as the right column grows.
+   ↓ PLANT LAYOUT CONTROL IS HERE ↓
+══════════════════════════════════════════ */
+.seq-layout {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 2.5rem;
+  align-items: start;
+  margin-bottom: 3rem;
+}
+
+/* LEFT: sticky plant column */
+/* ↓ To change the sticky offset, edit: top: Xrem ↓ */
+.plant-col {
+  position: sticky;
+  top: 1.5rem;               /* <- sticky top offset */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* RIGHT: info/text column — natural height, scrollable by page */
+.info-col {
+  display: flex; flex-direction: column; gap: 1rem;
+  padding-top: 0.25rem;
+}
+
+/* Mobile: stack, plant on top */
+@media (max-width: 640px) {
+  .seq-layout {
+    grid-template-columns: 1fr;
+  }
+  .plant-col {
+    position: relative;   /* no sticky on mobile */
+    top: 0;
+  }
+}
+
+/* ── MUG BUTTON ────────────────────────── */
+.mug-btn {
+  background: none;
+  border: 2px solid var(--orange);
+  border-radius: 12px;
+  padding: 0.55rem 1.1rem;
+  cursor: pointer;
+  display: flex; align-items: center; gap: 0.55rem;
+  font-family: 'DM Mono', 'Courier New', monospace;
+  font-size: 0.76rem; font-weight: 500;
+  color: var(--orange-deep); letter-spacing: 0.06em;
+  transition: background 0.2s, transform 0.15s, box-shadow 0.2s, opacity 0.4s;
+}
+.mug-btn:hover:not(:disabled) {
+  background: var(--orange-light);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 18px rgba(242,101,34,0.17);
+}
+.mug-btn:active:not(:disabled) { transform: translateY(0) scale(0.97); }
+.mug-btn:disabled { opacity: 0.35; cursor: default; border-color: var(--border); }
+.mug-btn:focus-visible { outline: 3px solid var(--orange); outline-offset: 3px; }
+
+.mug-btn--second {
+  border-color: var(--coral); color: var(--coral-deep);
+}
+.mug-btn--second:hover:not(:disabled) {
+  background: var(--coral-light);
+  box-shadow: 0 5px 18px rgba(232,67,42,0.15);
+}
+.mug-btn--second:focus-visible { outline-color: var(--coral); }
+
+.mug-icon { width: 26px; height: 26px; flex-shrink: 0; }
+
+/* ── WATER DROPS ─────────────────────────*/
+.water-container {
+  position: relative; width: 100%; display: flex; justify-content: center;
+}
+.drop {
+  position: absolute; width: 6px; height: 9px;
+  background: #5BB3F5; border-radius: 50% 50% 60% 60%;
+  opacity: 0; animation: dropFall 0.7s ease-in forwards;
+}
+@keyframes dropFall {
+  0%   { opacity: 0.9; transform: translateY(0)     scaleX(1);   }
+  80%  { opacity: 0.7; transform: translateY(80px)  scaleX(0.9); }
+  100% { opacity: 0;   transform: translateY(100px) scaleX(0.8); }
+}
+
+/* ── PLANT WRAP ─────────────────────────── */
+.plant-stage-wrap { width: 100%; max-width: 220px; }
+.plant-grow {
+  animation: plantGrow 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+@keyframes plantGrow {
+  from { transform: scale(0.93); }
+  to   { transform: scale(1); }
+}
+
+/* Stage dots */
+.stage-dots { display: flex; gap: 6px; justify-content: center; }
+.stage-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--orange-mid);
+  transition: background 0.3s, transform 0.3s;
+}
+.stage-dot.active { background: var(--orange); transform: scale(1.25); }
+.stage-dot.done   { background: var(--green); }
+.stage-dots--second .stage-dot        { background: var(--coral-mid); }
+.stage-dots--second .stage-dot.active { background: var(--coral); }
+.stage-dots--second .stage-dot.done   { background: var(--green-dark); }
+
+/* Reset button */
+.reset-btn {
+  background: none; border: none;
+  font-family: 'DM Mono', 'Courier New', monospace;
+  font-size: 0.68rem; color: var(--text-muted);
+  cursor: pointer; text-decoration: underline;
+  text-underline-offset: 3px;
+  opacity: 0.5; transition: opacity 0.2s; padding: 0.2rem 0.4rem;
+}
+.reset-btn:hover { opacity: 1; }
+.reset-btn:focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; border-radius: 3px; }
+
+/* Pulse dot hint */
+.water-hint {
+  display: flex; align-items: center; gap: 0.5rem;
+  font-family: 'DM Mono', 'Courier New', monospace;
+  font-size: 0.66rem; color: var(--text-muted); opacity: 0.6;
+}
+.pulsing-dot {
+  width: 6px; height: 6px; border-radius: 50%; background: var(--orange);
+  animation: pulse 2s ease-in-out infinite;
+}
+.pulsing-dot--coral { background: var(--coral); }
+@keyframes pulse {
+  0%, 100% { transform: scale(1); opacity: 0.8; }
+  50%       { transform: scale(1.5); opacity: 0.4; }
+}
+
+/* ── INFO CARD ───────────────────────────── */
+.info-header {
+  font-family: 'DM Mono', 'Courier New', monospace;
+  font-size: 0.62rem; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--orange);
+}
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.2rem 1.3rem;
+  min-height: 80px;
+  position: relative; overflow: hidden;
+}
+.card::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+  background: var(--orange); border-radius: 3px 0 0 3px;
+  opacity: 0; transition: opacity 0.4s;
+}
+.card.has-content::before { opacity: 1; }
+.card--second::before { background: var(--coral); }
+
+.card-empty {
+  font-family: 'DM Mono', 'Courier New', monospace;
+  font-size: 0.75rem; color: #C8A090;
+}
+.fact-list { display: flex; flex-direction: column; gap: 0.85rem; }
+.fact-item {
+  font-size: 0.91rem; line-height: 1.7; color: var(--text);
+  opacity: 0; transform: translateY(8px);
+  animation: factIn 0.5s ease 0.05s forwards;
+}
+@keyframes factIn { to { opacity: 1; transform: translateY(0); } }
+.fact-item .stage-label {
+  display: inline-block;
+  font-family: 'DM Mono', 'Courier New', monospace;
+  font-size: 0.58rem; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--orange); margin-bottom: 0.15rem;
+}
+.fact-item .stage-label--coral { color: var(--coral); }
+
+/* Complete messages */
+.complete-msg {
+  background: linear-gradient(135deg, #FFF8E1, #FFF0E8);
+  border: 1px solid rgba(255,212,59,0.4);
+  border-radius: 12px; padding: 1rem 1.2rem;
+  font-size: 0.88rem; line-height: 1.7; color: var(--text);
+  display: flex; flex-direction: column; gap: 0.35rem;
+}
+.complete-msg strong { color: var(--orange-deep); font-weight: 600; }
+
+.finish-msg {
+  background: linear-gradient(135deg, #FFF0EB, #FFE4E0);
+  border: 1px solid rgba(232,67,42,0.22);
+  border-radius: 12px; padding: 1.2rem 1.4rem;
+  font-size: 0.9rem; line-height: 1.72; color: var(--text);
+  display: flex; flex-direction: column; gap: 0.45rem;
+}
+.finish-msg strong { color: var(--coral-deep); font-weight: 600; }
+.still-growing {
+  font-family: 'DM Mono', 'Courier New', monospace;
+  font-size: 0.72rem; color: var(--green-dark); letter-spacing: 0.05em; margin-top: 0.2rem;
+}
+
+/* ══════════════════════════════════════════
+   WIND + PAPER NOTE
+   ─────────────────────────────────────────
+   ↓ WIND ANIMATION + NOTE TRIGGER IS HERE ↓
+   Wind particles float up from the plant.
+   The note slides in from the right.
+   To change the portfolio link: edit href
+   in the JS `showWindNote()` function.
+══════════════════════════════════════════ */
+
+/* Wind particles */
+.wind-particle {
+  position: fixed;          /* fixed so they float over everything */
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--orange-mid);
+  pointer-events: none;
+  opacity: 0;
+  animation: windFloat 2.2s ease-out forwards;
+}
+@keyframes windFloat {
+  0%   { opacity: 0;   transform: translate(0, 0)           scale(1);   }
+  20%  { opacity: 0.7; }
+  100% { opacity: 0;   transform: translate(var(--wx), var(--wy)) scale(0.3); }
+}
+
+/* Note wrapper — slides in from right */
+.wind-note {
+  margin-top: 1.5rem;
+  opacity: 0;
+  transform: translateX(40px) rotate(1.5deg);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+  max-width: 340px;
+}
+.wind-note.visible {
+  opacity: 1;
+  transform: translateX(0) rotate(0deg);
+}
+.wind-note-inner {
+  background: #FFFDF5;
+  border: 1px dashed var(--orange-mid);
+  border-radius: 8px;
+  padding: 1.1rem 1.3rem;
+  position: relative;
+  box-shadow: 2px 4px 16px rgba(242,101,34,0.09);
+}
+/* Little fold corner */
+.wind-note-inner::after {
+  content: '';
+  position: absolute; top: 0; right: 0;
+  width: 16px; height: 16px;
+  background: linear-gradient(225deg, var(--bg) 50%, var(--orange-mid) 50%);
+  border-radius: 0 8px 0 0;
+}
+.wind-note-title {
+  font-family: 'DM Mono', 'Courier New', monospace;
+  font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--orange); margin-bottom: 0.5rem;
+}
+.wind-note-body {
+  font-size: 0.88rem; line-height: 1.65; color: var(--text); margin-bottom: 0.9rem;
+}
+
+/* Portfolio link button inside the note */
+/* ↓ PORTFOLIO LINK — href set in JS showWindNote() ↓ */
+.portfolio-btn {
+  display: inline-flex; align-items: center; gap: 0.45rem;
+  background: var(--orange);
+  color: white;
+  font-family: 'DM Mono', 'Courier New', monospace;
+  font-size: 0.72rem; font-weight: 500;
+  letter-spacing: 0.06em;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: background 0.2s, transform 0.15s;
+}
+.portfolio-btn:hover { background: var(--orange-deep); transform: translateY(-1px); }
+.portfolio-btn:focus-visible { outline: 3px solid var(--orange); outline-offset: 3px; }
+
+/* ══════════════════════════════════════════
+   SECTION DIVIDER
+══════════════════════════════════════════ */
+.section-divider {
+  display: flex; align-items: center; gap: 1rem;
+  margin: 3rem 0 2rem;
+  opacity: 0; transform: translateY(10px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.section-divider.visible { opacity: 1; transform: translateY(0); }
+.section-divider-line { flex: 1; height: 1px; background: var(--orange-mid); }
+.section-divider-label {
+  font-family: 'DM Mono', 'Courier New', monospace;
+  font-size: 0.65rem; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--orange); white-space: nowrap;
+}
+
+/* Seq 2 wrapper */
+#seq2Wrapper { display: none; }
+#seq2Wrapper .seq-layout {
+  opacity: 0; transform: translateY(16px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+#seq2Wrapper.visible .seq-layout { opacity: 1; transform: translateY(0); }
+
+/* ══════════════════════════════════════════
+   SKILLS & STRENGTHS SECTION
+   ─────────────────────────────────────────
+   ↓ EDIT SKILLS/STRENGTHS CONTENT IN JS:
+     SKILLS_DATA array at the bottom of <script>
+   The grid uses auto-fill with min 180px cards.
+══════════════════════════════════════════ */
+.skills-section {
+  margin: 3.5rem 0 3rem;
+  opacity: 0; transform: translateY(14px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.skills-section.visible { opacity: 1; transform: translateY(0); }
+
+.skills-intro {
+  font-size: 0.9rem; color: var(--text-muted);
+  font-style: italic; margin-bottom: 1.4rem;
+  line-height: 1.6;
+}
+
+.skills-group { margin-bottom: 1.6rem; }
+.skills-group-label {
+  font-family: 'DM Mono', 'Courier New', monospace;
+  font-size: 0.6rem; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--orange); margin-bottom: 0.7rem;
+}
+
+.skills-grid {
+  display: flex; flex-wrap: wrap; gap: 0.55rem;
+}
+
+/* Skill tag */
+.skill-tag {
+  background: var(--orange-light);
+  border: 1px solid var(--orange-mid);
+  border-radius: 6px;
+  padding: 0.38rem 0.75rem;
+  font-family: 'DM Mono', 'Courier New', monospace;
+  font-size: 0.74rem; color: var(--orange-deep);
+  transition: background 0.18s, transform 0.15s;
+  cursor: default;
+}
+.skill-tag:hover {
+  background: var(--orange-mid);
+  transform: translateY(-1px);
+}
+
+/* Strength card — slightly more visual weight */
+.strength-tag {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.5rem 0.85rem;
+  font-size: 0.84rem; color: var(--text); line-height: 1.45;
+  transition: background 0.18s, transform 0.15s, box-shadow 0.18s;
+  cursor: default;
+}
+.strength-tag:hover {
+  background: var(--orange-light);
+  border-color: var(--orange-mid);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(242,101,34,0.1);
+}
+
+/* ── FOOTER ──────────────────────────────── */
+footer {
+  padding: 1.5rem 0 2.5rem;
+  border-top: 1px solid var(--border);
+  font-family: 'DM Mono', 'Courier New', monospace;
+  font-size: 0.62rem; color: #C8A090; letter-spacing: 0.07em;
+  display: flex; justify-content: space-between; align-items: center;
+  flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem;
+}
+
+/* ── LEAF / FLOWER ANIMATIONS ────────────── */
+.leaf-sway   { transform-origin: bottom center; animation: leafSway 3s ease-in-out infinite; }
+.leaf-sway-2 { transform-origin: bottom center; animation: leafSway 3s ease-in-out 1.5s infinite; }
+@keyframes leafSway {
+  0%, 100% { transform: rotate(0deg); }
+  50%       { transform: rotate(4deg); }
+}
+
+/* ↓ WIND SWAY — applied to plantWrap1 after final bloom ↓ */
+.wind-sway {
+  animation: windSway 1.8s ease-in-out 3;  /* 3 repetitions then stops */
+  transform-origin: bottom center;
+}
+@keyframes windSway {
+  0%   { transform: rotate(0deg)    translateX(0); }
+  25%  { transform: rotate(-3deg)   translateX(-4px); }
+  50%  { transform: rotate(2.5deg)  translateX(3px); }
+  75%  { transform: rotate(-2deg)   translateX(-3px); }
+  100% { transform: rotate(0deg)    translateX(0); }
+}
+
+.flower-shimmer { animation: shimmer 2.5s ease-in-out infinite; }
+@keyframes shimmer {
+  0%, 100% { filter: brightness(1);    }
+  50%       { filter: brightness(1.12); }
+}
+
+/* ── REDUCED MOTION ──────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration:  0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <!-- ── HEADER ─────────────────────────── -->
+  <header>
+    <span class="logo-badge">OpenSesame</span>
+    <h1 class="header-title">a little story about <em>me</em></h1>
+  </header>
+
+  <!-- ══════════════════════════════════════
+       SEQUENCE 1 — My Journey So Far
+       Left: sticky plant | Right: story text
+  ═══════════════════════════════════════ -->
+  <div class="seq-layout" id="seq1Layout">
+
+    <!-- LEFT: sticky plant column -->
+    <div class="plant-col" id="plantCol1">
+      <div class="water-hint">
+        <div class="pulsing-dot"></div>
+        click the mug to water
+      </div>
+
+      <!-- MUG 1 (orange) -->
+      <button
+        class="mug-btn mug-btn--first"
+        id="mugBtn1"
+        aria-label="Water the plant to grow it and reveal a new fact"
+      >
+        <svg class="mug-icon" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+          <rect x="5" y="10" width="17" height="16" rx="3" fill="#FFD9BC" stroke="#F26522" stroke-width="1.5"/>
+          <path d="M22 14 C28 14 28 22 22 22" stroke="#F26522" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+          <rect x="6.5" y="14" width="14" height="10.5" rx="1.5" fill="#BFE8FF" opacity="0.6"/>
+          <path d="M9 10 L13 10 L11 6 Z" fill="#F26522" opacity="0.5"/>
+          <rect x="5" y="10" width="17" height="2" rx="1.5" fill="#F26522" opacity="0.3"/>
+        </svg>
+        water!
+      </button>
+
+      <!-- Plant SVG lives here; drops spray over it -->
+      <div class="water-container" id="waterContainer1" aria-hidden="true">
+        <div class="plant-stage-wrap" id="plantWrap1"></div>
+      </div>
+
+      <!-- 7 progress dots -->
+      <div class="stage-dots" id="stageDots1"
+           role="progressbar" aria-label="Plant 1 growth progress"
+           aria-valuenow="0" aria-valuemax="7">
+      </div>
+
+      <button class="reset-btn" id="resetBtn" aria-label="Reset both plants and start over">↺ start over</button>
+    </div>
+
+    <!-- RIGHT: story/text column -->
+    <div class="info-col">
+      <p class="info-header">what you've unlocked</p>
+      <div class="card" id="infoCard1">
+        <p class="card-empty" id="emptyMsg1">water the plant to learn something ☁</p>
+        <div class="fact-list" id="factList1" aria-live="polite" aria-atomic="false"></div>
+      </div>
+      <div id="completeArea1"></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       SKILLS & STRENGTHS SECTION
+       Appears after seq1 is complete.
+       ↓ Content is in JS: SKILLS_DATA ↓
+  ═══════════════════════════════════════ -->
+  <section class="skills-section" id="skillsSection" aria-label="Skills and strengths">
+    <!-- filled by JS -->
+  </section>
+
+  <!-- ══════════════════════════════════════
+       SEQUENCE 2 — Why OpenSesame
+       Hidden until seq1 stage 7.
+  ═══════════════════════════════════════ -->
+  <div id="seq2Wrapper">
+    <div class="section-divider" id="divider2">
+      <div class="section-divider-line"></div>
+      <span class="section-divider-label">✦ why opensesame</span>
+      <div class="section-divider-line"></div>
+    </div>
+
+    <div class="seq-layout" id="seq2Layout">
+      <!-- LEFT: sticky plant 2 -->
+      <div class="plant-col">
+        <div class="water-hint">
+          <div class="pulsing-dot pulsing-dot--coral"></div>
+          keep going — next chapter
+        </div>
+        <button
+          class="mug-btn mug-btn--second"
+          id="mugBtn2"
+          aria-label="Water the second plant to reveal why I want to join OpenSesame"
+          disabled
+        >
+          <svg class="mug-icon" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+            <rect x="5" y="10" width="17" height="16" rx="3" fill="#F4A090" stroke="#E8432A" stroke-width="1.5"/>
+            <path d="M22 14 C28 14 28 22 22 22" stroke="#E8432A" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+            <rect x="6.5" y="14" width="14" height="10.5" rx="1.5" fill="#BFE8FF" opacity="0.6"/>
+            <path d="M9 10 L13 10 L11 6 Z" fill="#E8432A" opacity="0.5"/>
+            <rect x="5" y="10" width="17" height="2" rx="1.5" fill="#E8432A" opacity="0.3"/>
+          </svg>
+          water!
+        </button>
+        <div class="water-container" id="waterContainer2" aria-hidden="true">
+          <div class="plant-stage-wrap" id="plantWrap2"></div>
+        </div>
+        <div class="stage-dots stage-dots--second" id="stageDots2"
+             role="progressbar" aria-label="Plant 2 growth progress"
+             aria-valuenow="0" aria-valuemax="4">
+        </div>
+      </div>
+
+      <!-- RIGHT: why opensesame text -->
+      <div class="info-col">
+        <p class="info-header" style="color: var(--coral);">why opensesame</p>
+        <div class="card card--second" id="infoCard2">
+          <p class="card-empty" id="emptyMsg2">water to continue ☁</p>
+          <div class="fact-list" id="factList2" aria-live="polite" aria-atomic="false"></div>
+        </div>
+        <div id="completeArea2"></div>
+
+        <!-- ↓ WIND NOTE renders here after seq2 final bloom ↓ -->
+        <div class="wind-note" id="windNote" role="complementary" aria-label="Portfolio note">
+          <!-- filled by JS -->
+        </div>
+      </div>
+    </div>
+  </div><!-- /#seq2Wrapper -->
+
+  <footer>
+    <span>built with intention and growth</span>
+    <span>dilasha — cs + ux + people</span>
+  </footer>
+
+</div><!-- /.wrapper -->
+
+<script>
+/* ═══════════════════════════════════════════════════════
+   CONTENT — SEQUENCE 1
+   Edit text/label fields to change story content.
+═══════════════════════════════════════════════════════ */
+const STAGES_1 = [
+  {
+    label: "stage 1 — hello",
+    text:  "Hi, a little bit about me — I'm Dilasha. I was born in Kathmandu, Nepal, and grew up around nature, family, and a mix of cultures."
+  },
+  {
+    label: "stage 2 — the journey begins",
+    text:  "I came to the U.S. after finishing Cambridge A Levels in Computer Science."
+  },
+  {
+    label: "stage 3 — new ground",
+    text:  "Joining Minnesota State University, Mankato was a big change, but it made me more confident."
+  },
+  {
+    label: "stage 4 — real work",
+    text:  "I started in IT support, helping people fix real problems and communicate clearly — I'm now a Senior IT Consultant."
+  },
+  {
+    label: "stage 5 — giving back",
+    text:  "I also became a tutor for calculus and programming, working with students who were struggling."
+  },
+  {
+    label: "stage 6 — research & builds",
+    text:  "After that, I joined undergraduate research in machine learning, built a sentiment analysis model, and worked on projects like pricing/quantity breaks. I also led software development for an engineering design contest system and helped deploy it for a live event."
+  },
+  {
+    label: "stage 7 — right now 🌻",
+    text:  "Right now, I'm an IT Project Manager intern at Christensen Farms, helping with a cloud-based migration across departments."
+  }
+];
+
+/* ═══════════════════════════════════════════════════════
+   CONTENT — SEQUENCE 2
+═══════════════════════════════════════════════════════ */
+const STAGES_2 = [
+  {
+    label: "next — what drives me",
+    text:  "Looking back, I've always been drawn to work that helps people learn and grow. From tutoring to IT support to building full-stack and AI systems — I've enjoyed problem solving, designing, and collaborating to create something meaningful."
+  },
+  {
+    label: "next — why this place",
+    text:  "OpenSesame feels like a place I would genuinely enjoy working. You focus on learning, and that matters to me. I don't just want to build software. I want to build tools that support real people in their everyday work."
+  },
+  {
+    label: "next — what matters",
+    text:  "Workplace learning affects how people grow in their careers, and being part of that feels important."
+  },
+  {
+    label: "next — looking ahead 🌸",
+    text:  "As I continue growing as an engineer, I want to work on systems that are thoughtful, scalable, and actually useful. OpenSesame feels like a natural next step in that direction."
+  }
+];
+
+/* ═══════════════════════════════════════════════════════
+   SKILLS & STRENGTHS CONTENT
+   ↓ EDIT HERE to change skills/strengths ↓
+═══════════════════════════════════════════════════════ */
+const SKILLS_DATA = {
+  intro: "Things I'm good at, and things I care about. I'm always learning, but here are some highlights:",
+  skills: [
+    "React, JavaScript",
+    "Django / REST APIs",
+    "PostgreSQL / SQL",
+    "Python, ML basics (NLP, sentiment analysis)",
+    "RAG / document search (chunking + embeddings)",
+    "Git, debugging, testing"
+  ],
+  strengths: [
+    "Clear communication (IT support + tutoring)",
+    "Patient problem solving",
+    "Ownership — I like finishing what I start",
+    "Team collaboration (listening + trade-offs)",
+    "Caring about usability, not just code"
+  ]
+};
+
+/* ═══════════════════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════════════════ */
+let seq1Stage  = 0;
+let seq2Stage  = 0;
+let seq2Active = false;
+
+/* ═══════════════════════════════════════════════════════
+   PLANT SVGs — SEQUENCE 1 (yellow flower)
+   To change flower 1 color: edit '#FFD43B' (petals),
+   '#F5A623' / '#E8890A' (center).
+═══════════════════════════════════════════════════════ */
+function plantSVG_1(stage) {
+  const W = 220, H = 260;
+  const soil = `
+    <ellipse cx="110" cy="235" rx="75" ry="16" fill="#A0673A" opacity="0.22"/>
+    <rect x="45" y="228" width="130" height="22" rx="8" fill="#7B4F2E"/>
+    <rect x="45" y="228" width="130" height="7"  rx="3" fill="#A0673A"/>`;
+
+  /* Consistent leaf geometry — same positions every stage they appear.
+     Pair A (lower): left cx=88,cy=206 / right cx=132,cy=198
+     Pair B (upper): left cx=90,cy=174 / right cx=130,cy=166        */
+  const leafA = `
+    <ellipse cx="88"  cy="206" rx="22" ry="10" fill="#4A9B5F" transform="rotate(-35 88 206)"  class="leaf-sway"/>
+    <ellipse cx="132" cy="198" rx="22" ry="10" fill="#4A9B5F" transform="rotate(32 132 198)"  class="leaf-sway-2"/>`;
+  const leafB = `
+    <ellipse cx="90"  cy="174" rx="18" ry="8"  fill="#5CAF72" transform="rotate(-24 90 174)"  class="leaf-sway"/>
+    <ellipse cx="130" cy="166" rx="18" ry="8"  fill="#5CAF72" transform="rotate(22 130 166)"  class="leaf-sway-2"/>`;
+
+  if (stage === 0) return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
+    ${soil}
+    <ellipse cx="110" cy="230" rx="12" ry="8" fill="#C88C3C"/>
+    <ellipse cx="110" cy="228" rx="9"  ry="6" fill="#E8A84A"/>
+    <line x1="110" y1="225" x2="110" y2="216" stroke="#5CAF72" stroke-width="2" stroke-linecap="round"/>
+    <text x="110" y="270" text-anchor="middle" font-family="Georgia,serif" font-size="11" fill="#A0673A" opacity="0.45">a seed</text>
+  </svg>`;
+
+  /* Stage 1 — tiny sprout, no leaves yet */
+  if (stage === 1) return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
+    ${soil}
+    <line x1="110" y1="228" x2="110" y2="195" stroke="#5CAF72" stroke-width="2.5" stroke-linecap="round"/>
+    <ellipse cx="102" cy="203" rx="11" ry="6" fill="#6DBF7E" transform="rotate(-30 102 203)"/>
+    <ellipse cx="118" cy="200" rx="11" ry="6" fill="#6DBF7E" transform="rotate(30 118 200)"/>
+    <circle cx="110" cy="193" r="5" fill="#8ED89E"/>
+  </svg>`;
+
+  /* Stage 2 — taller stem, leaf pair A appears (small) */
+  if (stage === 2) return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
+    ${soil}
+    <path d="M110 228 Q109 210 110 178" stroke="#5CAF72" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <ellipse cx="88"  cy="206" rx="14" ry="7"  fill="#6DBF7E" transform="rotate(-35 88 206)"  class="leaf-sway"/>
+    <ellipse cx="132" cy="198" rx="14" ry="7"  fill="#6DBF7E" transform="rotate(32 132 198)"  class="leaf-sway-2"/>
+    <circle cx="110" cy="176" r="7" fill="#8ED89E"/>
+  </svg>`;
+
+  /* Stage 3 — leaf pair A full size, stem curves */
+  if (stage === 3) return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
+    ${soil}
+    <path d="M110 228 Q108 205 110 158" stroke="#5CAF72" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+    ${leafA}
+    <circle cx="110" cy="156" r="8" fill="#8ED89E"/>
+  </svg>`;
+
+  /* Stage 4 — leaf pairs A+B appear, bud forming */
+  if (stage === 4) return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
+    ${soil}
+    <path d="M110 228 Q107 200 110 132" stroke="#4A9B5F" stroke-width="4" fill="none" stroke-linecap="round"/>
+    ${leafA}
+    ${leafB}
+    <ellipse cx="110" cy="130" rx="9"  ry="15" fill="#A8D5A2"/>
+    <ellipse cx="110" cy="128" rx="6"  ry="11" fill="#C0E8BA"/>
+    <ellipse cx="110" cy="123" rx="4"  ry="7"  fill="#D4F0CF"/>
+  </svg>`;
+
+  /* Stage 5 — same leaves, bud opening with yellow hints */
+  if (stage === 5) return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
+    ${soil}
+    <path d="M110 228 Q106 196 110 114" stroke="#3E8B52" stroke-width="4" fill="none" stroke-linecap="round"/>
+    ${leafA}
+    ${leafB}
+    <ellipse cx="110" cy="113" rx="11" ry="17" fill="#8AC882"/>
+    <ellipse cx="110" cy="111" rx="8"  ry="13" fill="#A8E09E"/>
+    <ellipse cx="101" cy="103" rx="9"  ry="5"  fill="#FFEC80" transform="rotate(-22 101 103)" opacity="0.8"/>
+    <ellipse cx="119" cy="103" rx="9"  ry="5"  fill="#FFEC80" transform="rotate(22 119 103)"  opacity="0.8"/>
+    <ellipse cx="110" cy="99"  rx="6"  ry="9"  fill="#FFE566" opacity="0.7"/>
+  </svg>`;
+
+  /* Stage 6 — same leaves, partial flower */
+  if (stage === 6) return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
+    ${soil}
+    <path d="M110 228 Q105 192 110 98" stroke="#2E7044" stroke-width="5" fill="none" stroke-linecap="round"/>
+    ${leafA}
+    ${leafB}
+    ${petalRing(110, 86, 26, 15, '#FFD43B', 7, 0.85)}
+    <circle cx="110" cy="86" r="13" fill="#F5A623"/>
+    <circle cx="110" cy="86" r="9"  fill="#E8890A"/>
+  </svg>`;
+
+  /* Stage 7 — FULL YELLOW FLOWER (bigger: distR 34, petal 17)
+     To change petal color: '#FFD43B'
+     To change center color: '#F5A623', '#E8890A' */
+  return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
+    ${soil}
+    <path d="M110 228 Q104 190 110 96" stroke="#2E7044" stroke-width="5.5" fill="none" stroke-linecap="round"/>
+    ${leafA}
+    ${leafB}
+    ${petalRing(110, 78, 34, 17, '#FFD43B', 8, 1)}
+    ${petalRing(110, 78, 25, 12, '#FFE566', 8, 1, 22.5)}
+    <circle cx="110" cy="78" r="16" fill="#F5A623" class="flower-shimmer"/>
+    <circle cx="110" cy="78" r="11" fill="#E8890A"/>
+    <circle cx="110" cy="78" r="6"  fill="#C84B0A" opacity="0.7"/>
+    <g class="flower-shimmer">
+      <circle cx="80"  cy="55" r="2.5" fill="#FFD43B" opacity="0.9"/>
+      <circle cx="140" cy="53" r="2.5" fill="#FFD43B" opacity="0.9"/>
+      <circle cx="110" cy="46" r="3"   fill="#FFE566" opacity="0.8"/>
+    </g>
+  </svg>`;
+}
+
+/* ═══════════════════════════════════════════════════════
+   PLANT SVGs — SEQUENCE 2 (coral/red flower)
+   To change flower 2 color: edit '#E8432A' (petals),
+   '#C84B0A' / '#A03018' (center).
+═══════════════════════════════════════════════════════ */
+function plantSVG_2(stage) {
+  const W = 220, H = 260;
+  const soil = `
+    <ellipse cx="110" cy="235" rx="75" ry="16" fill="#A0673A" opacity="0.22"/>
+    <rect x="45" y="228" width="130" height="22" rx="8" fill="#7B4F2E"/>
+    <rect x="45" y="228" width="130" height="7"  rx="3" fill="#A0673A"/>`;
+
+  /* Same fixed leaf positions as plant 1 for visual consistency */
+  const leafA = `
+    <ellipse cx="88"  cy="206" rx="22" ry="10" fill="#4A9B5F" transform="rotate(-35 88 206)"  class="leaf-sway"/>
+    <ellipse cx="132" cy="198" rx="22" ry="10" fill="#4A9B5F" transform="rotate(32 132 198)"  class="leaf-sway-2"/>`;
+  const leafB = `
+    <ellipse cx="90"  cy="174" rx="18" ry="8"  fill="#5CAF72" transform="rotate(-24 90 174)"  class="leaf-sway"/>
+    <ellipse cx="130" cy="166" rx="18" ry="8"  fill="#5CAF72" transform="rotate(22 130 166)"  class="leaf-sway-2"/>`;
+
+  if (stage === 0) return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
+    ${soil}
+    <ellipse cx="110" cy="230" rx="12" ry="8" fill="#C88C3C"/>
+    <ellipse cx="110" cy="228" rx="9"  ry="6" fill="#E8A84A"/>
+    <line x1="110" y1="225" x2="110" y2="216" stroke="#5CAF72" stroke-width="2" stroke-linecap="round"/>
+    <text x="110" y="270" text-anchor="middle" font-family="Georgia,serif" font-size="11" fill="#A0673A" opacity="0.45">a new seed</text>
+  </svg>`;
+
+  /* Stage 1 — sprout + leaf pair A (small) */
+  if (stage === 1) return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
+    ${soil}
+    <path d="M110 228 Q109 212 110 180" stroke="#5CAF72" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <ellipse cx="88"  cy="206" rx="13" ry="6"  fill="#6DBF7E" transform="rotate(-35 88 206)"  class="leaf-sway"/>
+    <ellipse cx="132" cy="198" rx="13" ry="6"  fill="#6DBF7E" transform="rotate(32 132 198)"  class="leaf-sway-2"/>
+    <ellipse cx="110" cy="178" rx="7"  ry="10" fill="#A8D5A2"/>
+    <ellipse cx="110" cy="176" rx="5"  ry="7"  fill="#F4C0B0" opacity="0.55"/>
+  </svg>`;
+
+  /* Stage 2 — leaf pairs A+B, opening bud */
+  if (stage === 2) return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
+    ${soil}
+    <path d="M110 228 Q107 202 110 142" stroke="#4A9B5F" stroke-width="4" fill="none" stroke-linecap="round"/>
+    ${leafA}
+    ${leafB}
+    <ellipse cx="110" cy="140" rx="10" ry="16" fill="#8AC882"/>
+    <ellipse cx="110" cy="138" rx="7"  ry="12" fill="#F4A090"/>
+    <ellipse cx="102" cy="130" rx="9"  ry="5"  fill="#F4907A" transform="rotate(-20 102 130)" opacity="0.8"/>
+    <ellipse cx="118" cy="130" rx="9"  ry="5"  fill="#F4907A" transform="rotate(20 118 130)"  opacity="0.8"/>
+  </svg>`;
+
+  /* Stage 3 — same leaves, partial coral petals */
+  if (stage === 3) return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
+    ${soil}
+    <path d="M110 228 Q104 194 110 106" stroke="#2E7044" stroke-width="5" fill="none" stroke-linecap="round"/>
+    ${leafA}
+    ${leafB}
+    ${petalRing(110, 94, 26, 15, '#E8432A', 7, 0.82)}
+    <circle cx="110" cy="94" r="13" fill="#C84B0A"/>
+    <circle cx="110" cy="94" r="9"  fill="#A03018"/>
+  </svg>`;
+
+  /* Stage 4 — FULL CORAL FLOWER (bigger: distR 34, petal 17)
+     To change petal color: '#E8432A'
+     To change center color: '#C84B0A', '#A03018' */
+  return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
+    ${soil}
+    <path d="M110 228 Q103 190 110 96" stroke="#2E7044" stroke-width="5.5" fill="none" stroke-linecap="round"/>
+    ${leafA}
+    ${leafB}
+    ${petalRing(110, 78, 34, 17, '#E8432A', 8, 1)}
+    ${petalRing(110, 78, 25, 12, '#F47A62', 8, 1, 22.5)}
+    <circle cx="110" cy="78" r="16" fill="#C84B0A" class="flower-shimmer"/>
+    <circle cx="110" cy="78" r="11" fill="#A03018"/>
+    <circle cx="110" cy="78" r="6"  fill="#7A1E08" opacity="0.8"/>
+    <g class="flower-shimmer">
+      <circle cx="80"  cy="55" r="2.5" fill="#F4907A" opacity="0.9"/>
+      <circle cx="140" cy="53" r="2.5" fill="#E8432A" opacity="0.9"/>
+      <circle cx="110" cy="46" r="3"   fill="#FFB89E" opacity="0.8"/>
+    </g>
+  </svg>`;
+}
+
+/* ─── petal ring helper ─────────────────── */
+function petalRing(cx, cy, distR, pr, fill, count, opacity = 1, startAngle = 0) {
+  let out = '';
+  for (let i = 0; i < count; i++) {
+    const angle = (360 / count) * i + startAngle;
+    const rad = (angle * Math.PI) / 180;
+    const px  = cx + distR * Math.sin(rad);
+    const py  = cy - distR * Math.cos(rad);
+    out += `<ellipse cx="${px.toFixed(1)}" cy="${py.toFixed(1)}"
+      rx="${pr}" ry="${(pr * 0.55).toFixed(1)}"
+      fill="${fill}" transform="rotate(${angle} ${px.toFixed(1)} ${py.toFixed(1)})"
+      opacity="${opacity}"/>`;
+  }
+  return out;
+}
+
+/* ═══════════════════════════════════════════════════════
+   DOM REFS
+═══════════════════════════════════════════════════════ */
+const mugBtn1        = document.getElementById('mugBtn1');
+const plantWrap1     = document.getElementById('plantWrap1');
+const stageDots1     = document.getElementById('stageDots1');
+const infoCard1      = document.getElementById('infoCard1');
+const factList1      = document.getElementById('factList1');
+const emptyMsg1      = document.getElementById('emptyMsg1');
+const completeArea1  = document.getElementById('completeArea1');
+const waterContainer1= document.getElementById('waterContainer1');
+const windNoteEl     = document.getElementById('windNote');
+const skillsSection  = document.getElementById('skillsSection');
+
+const seq2Wrapper    = document.getElementById('seq2Wrapper');
+const divider2       = document.getElementById('divider2');
+const mugBtn2        = document.getElementById('mugBtn2');
+const plantWrap2     = document.getElementById('plantWrap2');
+const stageDots2     = document.getElementById('stageDots2');
+const infoCard2      = document.getElementById('infoCard2');
+const factList2      = document.getElementById('factList2');
+const emptyMsg2      = document.getElementById('emptyMsg2');
+const completeArea2  = document.getElementById('completeArea2');
+const waterContainer2= document.getElementById('waterContainer2');
+const resetBtn       = document.getElementById('resetBtn');
+
+/* ═══════════════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════════════ */
+function init() {
+  seq1Stage  = 0;
+  seq2Stage  = 0;
+  seq2Active = false;
+
+  buildDots(stageDots1, 7);
+  renderPlant(plantWrap1, plantSVG_1, 0);
+  updateDots(stageDots1, 0);
+  factList1.innerHTML      = '';
+  emptyMsg1.style.display  = '';
+  infoCard1.classList.remove('has-content');
+  completeArea1.innerHTML  = '';
+  windNoteEl.innerHTML     = '';
+  windNoteEl.classList.remove('visible');
+  mugBtn1.disabled         = false;
+
+  buildDots(stageDots2, 4);
+  renderPlant(plantWrap2, plantSVG_2, 0);
+  updateDots(stageDots2, 0);
+  factList2.innerHTML      = '';
+  emptyMsg2.style.display  = '';
+  infoCard2.classList.remove('has-content');
+  completeArea2.innerHTML  = '';
+  mugBtn2.disabled         = true;
+
+  seq2Wrapper.style.display = 'none';
+  seq2Wrapper.classList.remove('visible');
+  divider2.classList.remove('visible');
+
+  skillsSection.classList.remove('visible');
+  skillsSection.innerHTML = '';
+}
+
+/* ─── dots ──────────────────────────────── */
+function buildDots(container, count) {
+  container.innerHTML = '';
+  for (let i = 0; i < count; i++) {
+    const d = document.createElement('div');
+    d.className = 'stage-dot';
+    container.appendChild(d);
+  }
+}
+function updateDots(container, stage) {
+  container.querySelectorAll('.stage-dot').forEach((d, i) => {
+    d.className = 'stage-dot';
+    if (i < stage) d.classList.add('done');
+    if (i === stage && stage <= container.children.length - 1) d.classList.add('active');
+  });
+  container.setAttribute('aria-valuenow', stage);
+}
+
+/* ─── plant render ──────────────────────── */
+function renderPlant(wrap, svgFn, stage) {
+  wrap.innerHTML = svgFn(stage);
+}
+function growPlant(wrap, svgFn, stage) {
+  wrap.innerHTML = svgFn(stage);
+  wrap.classList.remove('plant-grow');
+  void wrap.offsetWidth;
+  wrap.classList.add('plant-grow');
+}
+
+/* ─── spray drops ───────────────────────── */
+function sprayDrops(container) {
+  const w = container.getBoundingClientRect().width;
+  for (let i = 0; i < 8; i++) {
+    const drop = document.createElement('div');
+    drop.className = 'drop';
+    drop.style.left = (w / 2 + (Math.random() - 0.5) * 90) + 'px';
+    drop.style.top  = '0px';
+    drop.style.animationDelay    = (Math.random() * 0.28) + 's';
+    drop.style.animationDuration = (0.55 + Math.random() * 0.28) + 's';
+    container.appendChild(drop);
+    drop.addEventListener('animationend', () => drop.remove());
+  }
+}
+
+/* ─── fact reveal ───────────────────────── */
+function revealFact(factList, infoCard, emptyMsg, stageData, coral = false) {
+  emptyMsg.style.display = 'none';
+  infoCard.classList.add('has-content');
+  const item = document.createElement('div');
+  item.className = 'fact-item';
+  const lc = coral ? 'stage-label stage-label--coral' : 'stage-label';
+  item.innerHTML = `<span class="${lc}">${stageData.label}</span><br>${stageData.text}`;
+  factList.appendChild(item);
+  item.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+/* ═══════════════════════════════════════════════════════
+   WIND PARTICLES + PAPER NOTE
+   ─────────────────────────────────────────────────────
+ 
+   To change the portfolio link:
+   edit the href value in portfolioLink below.
+═══════════════════════════════════════════════════════ */
+function showWindNote() {
+  /* 1. Wind-sway the second plant (coral flower) */
+  plantWrap2.classList.remove('wind-sway');
+  void plantWrap2.offsetWidth;
+  plantWrap2.classList.add('wind-sway');
+
+  /* 2. Spawn floating wind particles from the second plant position */
+  const plantRect = plantWrap2.getBoundingClientRect();
+  const particleColors = ['#F4A090', '#FFD9BC', '#F47A62', '#F5A623'];
+  for (let i = 0; i < 18; i++) {
+    const p = document.createElement('div');
+    p.className = 'wind-particle';
+    /* Random travel vector: dx -120 to +120, dy -180 to -60 */
+    const wx = ((Math.random() - 0.5) * 240) + 'px';
+    const wy = (-(60 + Math.random() * 120)) + 'px';
+    p.style.setProperty('--wx', wx);
+    p.style.setProperty('--wy', wy);
+    p.style.left   = (plantRect.left + plantRect.width / 2 + (Math.random() - 0.5) * 60) + 'px';
+    p.style.top    = (plantRect.top  + 60) + 'px';
+    p.style.width  = p.style.height = (3 + Math.random() * 5) + 'px';
+    p.style.background = particleColors[Math.floor(Math.random() * particleColors.length)];
+    /* Stagger particle launch timing */
+    p.style.animationDelay = (i * 0.07) + 's';
+    p.style.animationDuration = (1.8 + Math.random() * 0.8) + 's';
+    document.body.appendChild(p);
+    p.addEventListener('animationend', () => p.remove());
+  }
+
+  /* 3. Slide in the paper note — delayed slightly after particles */
+  /* ↓ PORTFOLIO LINK — change href here ↓ */
+  const portfolioLink = 'https://dilashashakya.github.io/landing-page/';
+
+  setTimeout(() => {
+    windNoteEl.innerHTML = `
+      <div class="wind-note-inner">
+        <p class="wind-note-title">a small note</p>
+        <p class="wind-note-body">
+          If you made it here, thanks for reading.<br>
+          You can see my work here.
+        </p>
+        <a
+          class="portfolio-btn"
+          href="${portfolioLink}"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Open Dilasha's portfolio in a new tab"
+        >
+          Open my portfolio →
+        </a>
+      </div>`;
+    /* Trigger the slide-in transition */
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => windNoteEl.classList.add('visible'));
+    });
+  }, 600);  /* ← adjust delay (ms) between particles and note appearing */
+}
+
+/* ═══════════════════════════════════════════════════════
+   SKILLS SECTION RENDER
+   ↓ Content pulled from SKILLS_DATA above ↓
+═══════════════════════════════════════════════════════ */
+function renderSkills() {
+  skillsSection.innerHTML = `
+    <div class="section-divider visible" style="margin-top: 0; margin-bottom: 1.8rem;">
+      <div class="section-divider-line"></div>
+      <span class="section-divider-label">✦ skills &amp; strengths</span>
+      <div class="section-divider-line"></div>
+    </div>
+    <p class="skills-intro">${SKILLS_DATA.intro}</p>
+    <div class="skills-group">
+      <p class="skills-group-label">skills</p>
+      <div class="skills-grid" role="list" aria-label="Technical skills">
+        ${SKILLS_DATA.skills.map(s =>
+          `<span class="skill-tag" role="listitem">${s}</span>`
+        ).join('')}
+      </div>
+    </div>
+    <div class="skills-group">
+      <p class="skills-group-label">strengths</p>
+      <div class="skills-grid" role="list" aria-label="Personal strengths">
+        ${SKILLS_DATA.strengths.map(s =>
+          `<span class="strength-tag" role="listitem">${s}</span>`
+        ).join('')}
+      </div>
+    </div>`;
+
+  /* Fade in */
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => skillsSection.classList.add('visible'));
+  });
+}
+
+/* ═══════════════════════════════════════════════════════
+   SEQUENCE 1 WATERING
+═══════════════════════════════════════════════════════ */
+function doWater1() {
+  if (seq1Stage >= 7) return;
+  sprayDrops(waterContainer1);
+
+  setTimeout(() => {
+    seq1Stage++;
+    growPlant(plantWrap1, plantSVG_1, seq1Stage);
+    updateDots(stageDots1, seq1Stage);
+    revealFact(factList1, infoCard1, emptyMsg1, STAGES_1[seq1Stage - 1]);
+
+    if (seq1Stage === 7) {
+      mugBtn1.disabled = true;
+      completeArea1.innerHTML = `
+        <div class="complete-msg">
+          <strong>🌻 thanks for watering!</strong>
+          <span>that's my story so far — scroll down to keep going.</span>
+        </div>`;
+
+      /* ↓ TRIGGER: skills + seq2 on final seq1 bloom ↓ */
+      setTimeout(() => {
+        setTimeout(renderSkills, 400);    /* skills appear after bloom */
+        setTimeout(activateSeq2, 800);    /* seq2 appears after skills */
+      }, 400);
+    }
+  }, 500);
+}
+
+/* ═══════════════════════════════════════════════════════
+   SEQUENCE 2 ACTIVATION
+═══════════════════════════════════════════════════════ */
+function activateSeq2() {
+  seq2Active      = true;
+  mugBtn2.disabled = false;
+  seq2Wrapper.style.display = 'block';
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      seq2Wrapper.classList.add('visible');
+      divider2.classList.add('visible');
+    });
+  });
+}
+
+/* ═══════════════════════════════════════════════════════
+   SEQUENCE 2 WATERING
+═══════════════════════════════════════════════════════ */
+function doWater2() {
+  if (!seq2Active || seq2Stage >= 4) return;
+  sprayDrops(waterContainer2);
+
+  setTimeout(() => {
+    seq2Stage++;
+    growPlant(plantWrap2, plantSVG_2, seq2Stage);
+    updateDots(stageDots2, seq2Stage);
+    revealFact(factList2, infoCard2, emptyMsg2, STAGES_2[seq2Stage - 1], true);
+
+    if (seq2Stage === 4) {
+      mugBtn2.disabled = true;
+      completeArea2.innerHTML = `
+        <div class="finish-msg">
+          <strong>🌸 and that's where I am now.</strong>
+          <span>I'd love to be a part of your team and contribute my skills to something similar to this.</span>
+          <span class="still-growing">Always building, always growing. 🌱</span>
+        </div>`;
+
+      /* ↓ TRIGGER: wind + note after seq2 final bloom ↓ */
+      setTimeout(showWindNote, 500);
+    }
+  }, 500);
+}
+
+/* ═══════════════════════════════════════════════════════
+   EVENT LISTENERS
+═══════════════════════════════════════════════════════ */
+mugBtn1.addEventListener('click', doWater1);
+mugBtn1.addEventListener('keydown', e => {
+  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); doWater1(); }
+});
+mugBtn2.addEventListener('click', doWater2);
+mugBtn2.addEventListener('keydown', e => {
+  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); doWater2(); }
+});
+resetBtn.addEventListener('click', init);
+
+/* ── START ──────────────────────────────── */
+init();
+</script>
+</body>
+</html>
